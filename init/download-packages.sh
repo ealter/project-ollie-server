@@ -1,2 +1,2 @@
 #!/bin/bash
-apt-get install vim nginx
+apt-get install vim nginx mongo php5 php5-fpm php5-cgi
