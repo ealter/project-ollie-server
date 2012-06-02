@@ -21,9 +21,8 @@ function login($username, $unencryptedPassword) {
 $username = $_POST['username'];
 $unencryptedPassword = $_POST['password'];
 if(login($username, $unencryptedPassword)) {
-  session_start();
-  $_SESSION['username'] = $username;
-  echo json_encode(array('session_id' => session_id()));
+  $data = array('auth_token' => base64_encode(Accounts::generateAuthToken($username)));
+  echo json_encode($data);
 }
 else {
   invalidLogin();

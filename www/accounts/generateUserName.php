@@ -12,7 +12,7 @@ function generateUserName() {
   }
   $data = array($fieldName => $accountId);
   if($field !== NULL)
-    $table->update(array(), $data);
+    $table->update(array(), array('$set' => $data));
   else
     $table->insert($data);
 
