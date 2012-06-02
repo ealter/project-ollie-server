@@ -2,37 +2,19 @@
 /* Adds a new account to the database. Fails if the information is invalid or
  * the account already exists.*/
 
-function getAccountsTable() {
-  $m = new Mongo();
-  return $m->ollie->accounts;
-}
+require('accounts.php');
 
-function doesUserExist($username) {
-  $collection = getAccountsTable();
-  $user = $collection->findOne(array('username' => $username));
-  return $user !== NULL;
-}
-
-function getSalt() {
-  return mt_rand();
-}
-
-function returnError($message) {
-  header("Status: 400 Bad Request");
-  echo json_encode(array('error' => $message));
-  exit;
-}
 
 function makeNormalAccount($username, $unencryptedPassword) {
   $username = $_POST['username'];
   $unencryptedPassword = $_POST['password'];
-  if(doesUserExist($username)) {
-    returnError("Username already exists");
+  if(Accounts::doesUserExist($username)) {
+    Accounts::returnError("Username already exists");
   }
 
-  $salt = getSalt();
+  $salt = Accounts::getSalt();
   $password = sha1($salt . $unencryptedPassword);
-  $collection = getAccountsTable();
+  $collection = Accounts::getAccountsTable();
   $collection->insert(array('username' => $username,
                             'password' => $password, 
                             'salt'     => $salt,
@@ -44,7 +26,7 @@ if($typeOfAccount === 'none') {
   makeNormalAccount($_POST['username'], $_POST['password']);
 }
 else {
-  returnError("Unknown type of account: $typeOfAccount");
+  Accounts::returnError("Unknown type of account: $typeOfAccount");
 }
 
 ?>
