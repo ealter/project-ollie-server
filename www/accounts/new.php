@@ -24,8 +24,8 @@ function returnError($message) {
 }
 
 function makeNormalAccount($username, $unencryptedPassword) {
-  $username = $_GET['username'];
-  $unencryptedPassword = $_GET['password'];
+  $username = $_POST['username'];
+  $unencryptedPassword = $_POST['password'];
   if(doesUserExist($username)) {
     returnError("Username already exists");
   }
@@ -39,9 +39,9 @@ function makeNormalAccount($username, $unencryptedPassword) {
                             'type'     => 'none'));
 }
 
-$typeOfAccount = $_GET['type'];
+$typeOfAccount = $_POST['type'];
 if($typeOfAccount === 'none') {
-  makeNormalAccount($_GET['username'], $_GET['password']);
+  makeNormalAccount($_POST['username'], $_POST['password']);
 }
 else {
   returnError("Unknown type of account: $typeOfAccount");
