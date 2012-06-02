@@ -21,5 +21,14 @@ class Accounts
   public static function getSalt() {
     return mt_rand();
   }
+
+  public static function generateAuthToken($username) {
+    $token = openssl_random_pseudo_bytes(16);
+    $table = Accounts::getAccountsTable();
+    $table->update(array('username' => $username),
+                   array('$set' => array('token' => new MongoBinData($token),
+                                         'tokenDate' => new MongoDate())));
+    return $token;
+  }
 }
 ?>
