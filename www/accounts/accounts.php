@@ -82,6 +82,14 @@ class Accounts
     $table->update(array('email' => $email), 
                    array('$set' => array('password' => $password,
                                          'salt'     => $salt)));
+
+    //Send an email
+    $subject = "Your password has been reset";
+    $body = "This is an automatic message from Gorilla Warefare informing you
+             that your password for Gorilla Warefare has been reset.";
+    $from = "eliot.alter@tufts.edu"; //TODO
+    $headers = "From: $from\r\n";
+    mail($email, $subject, $body, $headers);
   }
 }
 
