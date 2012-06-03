@@ -35,13 +35,14 @@ class Accounts
     return $token;
   }
 
+  /* Checks the 'remember me' token for validity */
   public static function isAuthTokenValid($username, $token) {
     $table = Accounts::getAccountsTable();
     $user = $table->findOne(array('username' => $username));
     if($user === NULL)
       return false;
     //TODO: make the token expire if the date was too long ago
-    return $user['token'] == $token;
+    return $user['token'] == sha1($token);
   }
 
   public static function getPasswordResetLink($email) {
@@ -59,7 +60,19 @@ class Accounts
     }
     $url_token = urlencode($token);
     //TODO: fix this url
-    return "106.187.44.7/accounts/recoverEmail?email=$email&auth=$url_token";
+    return "106.187.44.7/accounts/recoverPassword.php?email=$email&auth=$url_token";
+  }
+
+  public static function isPasswordResetTokenValid($email, $token) {
+    $m = new Mongo();
+    $table = $m->ollie->accountRecovery;
+    $resetEntry = $table->findOne(array('email' => $email,
+                                        'token' => $token));
+    if($resetEntry !== NULL) {
+      echo "time: " . time();
+      echo " expires: " . $resetEntry['expires']->sec;
+    }
+    return $resetEntry !== NULL && $resetEntry['expires']->sec > time();
   }
 }
 
