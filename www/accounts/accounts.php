@@ -30,7 +30,7 @@ class Accounts
     $token = openssl_random_pseudo_bytes(16);
     $table = Accounts::getAccountsTable();
     $table->update(array('username' => $username),
-                   array('$set' => array('token' => new MongoBinData(sha1($token)),
+                   array('$set' => array('token'     => new MongoBinData(sha1($token)),
                                          'tokenDate' => new MongoDate())));
     return $token;
   }
@@ -43,5 +43,24 @@ class Accounts
     //TODO: make the token expire if the date was too long ago
     return $user['token'] == $token;
   }
+
+  public static function getPasswordResetLink($email) {
+    $token = base64_encode(openssl_random_pseudo_bytes(8));
+    $m = new Mongo();
+    $table = $m->ollie->accountRecovery;
+    $resetEntry = $table->findOne(array('email' => $email));
+    $expires = new MongoDate(strtotime('+1 hour'));
+    $data = array('email' => $email, 'token' => $token, 'expires' => $expires);
+    if($resetEntry === NULL) {
+      $table->insert($data);
+    }
+    else {
+      $table->update(array('email' => $email), $data);
+    }
+    $url_token = urlencode($token);
+    //TODO: fix this url
+    return "106.187.44.7/accounts/recoverEmail?email=$email&auth=$url_token";
+  }
 }
+
 ?>
