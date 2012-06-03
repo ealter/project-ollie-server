@@ -4,10 +4,7 @@
 
 require('accounts.php');
 
-
-function makeNormalAccount($username, $unencryptedPassword) {
-  $username = $_POST['username'];
-  $unencryptedPassword = $_POST['password'];
+function makeNormalAccount($username, $unencryptedPassword, $email) {
   if(Accounts::doesUserExist($username)) {
     Accounts::returnError("Username already exists");
   }
@@ -18,12 +15,13 @@ function makeNormalAccount($username, $unencryptedPassword) {
   $collection->insert(array('username' => $username,
                             'password' => $password, 
                             'salt'     => $salt,
+                            'email'    => $email,
                             'type'     => 'none'));
 }
 
 $typeOfAccount = $_POST['type'];
 if($typeOfAccount === 'none') {
-  makeNormalAccount($_POST['username'], $_POST['password']);
+  makeNormalAccount($_POST['username'], $_POST['password'], $_POST['email']);
 }
 else {
   Accounts::returnError("Unknown type of account: $typeOfAccount");
