@@ -13,7 +13,7 @@ function makeNormalAccount($username, $unencryptedPassword) {
   }
 
   $salt = Accounts::getSalt();
-  $password = sha1($salt . $unencryptedPassword);
+  $password = Accounts::hashPassword($unencryptedPassword, $salt);
   $collection = Accounts::getAccountsTable();
   $collection->insert(array('username' => $username,
                             'password' => $password, 

@@ -22,6 +22,10 @@ class Accounts
     return mt_rand();
   }
 
+  public static function hashPassword($password, $salt) {
+    return sha1($salt . $password);
+  }
+
   public static function generateAuthToken($username) {
     $token = openssl_random_pseudo_bytes(16);
     $table = Accounts::getAccountsTable();

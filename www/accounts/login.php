@@ -14,7 +14,7 @@ function login($username, $unencryptedPassword) {
   if($user === NULL) {
     invalidLogin();
   }
-  $password = sha1($user['salt'] . $unencryptedPassword);
+  $password = Accounts::hashPassword($unencryptedPassword, $user['salt']);
   return $password == $user['password'];
 }
 
