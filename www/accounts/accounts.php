@@ -26,7 +26,7 @@ class Accounts
     $token = openssl_random_pseudo_bytes(16);
     $table = Accounts::getAccountsTable();
     $table->update(array('username' => $username),
-                   array('$set' => array('token' => new MongoBinData($token),
+                   array('$set' => array('token' => new MongoBinData(sha1($token)),
                                          'tokenDate' => new MongoDate())));
     return $token;
   }
