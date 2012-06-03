@@ -68,11 +68,20 @@ class Accounts
     $table = $m->ollie->accountRecovery;
     $resetEntry = $table->findOne(array('email' => $email,
                                         'token' => $token));
-    if($resetEntry !== NULL) {
-      echo "time: " . time();
-      echo " expires: " . $resetEntry['expires']->sec;
-    }
     return $resetEntry !== NULL && $resetEntry['expires']->sec > time();
+  }
+
+  public static function resetPassword($email, $token, $unencryptedPassword) {
+    assert(Accounts::isPasswordResetTokenValid($email, $token));
+    $m = new Mongo();
+    $table = $m->ollie->accountRecovery;
+    $table->remove(array('email' => $email));
+    $table = Accounts::getAccountsTable();
+    $salt = Accounts::getSalt();
+    $password = Accounts::hashPassword($unencryptedPassword, $salt);
+    $table->update(array('email' => $email), 
+                   array('$set' => array('password' => $password,
+                                         'salt'     => $salt)));
   }
 }
 

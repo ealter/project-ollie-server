@@ -26,10 +26,11 @@ checkRecoveryLink($email, $auth);
 <body>
   <h1>Recover your password for Gorilla Warefare</h1>
   <form action="resetPassword.php" method="post">
-    <input type="hidden" name="auth_token" value="<?php echo $auth ?>" /> <br />
+    <input type="hidden" name="auth_token" value="<?php echo $auth ?>" />
     <input type="hidden" name="email" value="<?php echo $email ?>" />
-    New password: <input type="password" name="password" />
-    Confirm new password: <input type="password" name="password_repeat" />
+    New password: <input type="password" name="password" /> <br />
+    Confirm new password: <input type="password" name="password_repeat" /> <br />
+    <input type="submit" name="submit" value="Reset Password" />
   </form>
 </body>
 </html>
