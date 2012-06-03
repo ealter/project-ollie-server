@@ -30,5 +30,14 @@ class Accounts
                                          'tokenDate' => new MongoDate())));
     return $token;
   }
+
+  public static function isAuthTokenValid($username, $token) {
+    $table = Accounts::getAccountsTable();
+    $user = $table->findOne(array('username' => $username));
+    if($user === NULL)
+      return false;
+    //TODO: make the token expire if the date was too long ago
+    return $user['token'] == $token;
+  }
 }
 ?>
