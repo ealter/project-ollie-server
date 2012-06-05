@@ -1,4 +1,4 @@
-var db = require('mongojs').connect('ollie', ['accounts']);
+var db = require('mongojs').connect('ollie', ['accounts', 'accountsMeta']);
 var passwordHash = require('password-hash');
 var url = require('url');
 
@@ -32,6 +32,33 @@ function makeNormalAccount (username, unencryptedPassword, email, callback) {
   });
 }
 
+function generateUserName(callback) {
+  db.accountsMeta.findOne(function (err, result) {
+    var fieldName = 'highestAccountId';
+    var prefix = 'user';
+    var accountId = result !== null ? result[fieldName] : 135821;
+    var checkUserName = function(accountId, callback) {
+      doesUserExist(prefix + accountId, function(userExists) {
+        if(userExists)
+          checkUserName(accountId + 1);
+        else
+          callback(accountId);
+      });
+    };
+    checkUserName(accountId, function(accountId) {
+      console.log(accountId);
+      var data = {};
+      data[fieldName] = accountId;
+      if(result === null)
+        db.accountsMeta.insert(data);
+      else
+        //db.accountsMeta.update({}, {$set: data});
+        db.accountsMeta.update({}, data);
+      callback(prefix + accountId);
+    });
+  });
+};
+
 exports.newAccount = function (req, res) {
   var query = url.parse(req.url.href, true).query;
   var requiredProperties = ['username', 'password', 'email'];
@@ -44,5 +71,11 @@ exports.newAccount = function (req, res) {
   }
   makeNormalAccount(query.username, query.password, query.email, function (success) {
     res.send(success);
+  });
+};
+
+exports.generateUserName = function (req, res) {
+  generateUserName(function (name) {
+    res.send({username: name});
   });
 };
