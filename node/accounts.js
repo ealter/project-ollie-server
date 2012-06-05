@@ -40,7 +40,7 @@ function generateUserName(callback) {
     var checkUserName = function(accountId, callback) {
       doesUserExist(prefix + accountId, function(userExists) {
         if(userExists)
-          checkUserName(accountId + 1);
+          checkUserName(accountId + 1, callback);
         else
           callback(accountId);
       });
@@ -48,12 +48,11 @@ function generateUserName(callback) {
     checkUserName(accountId, function(accountId) {
       console.log(accountId);
       var data = {};
-      data[fieldName] = accountId;
+      data[fieldName] = accountId + 1;
       if(result === null)
         db.accountsMeta.insert(data);
       else
-        //db.accountsMeta.update({}, {$set: data});
-        db.accountsMeta.update({}, data);
+        db.accountsMeta.update({}, {$set: data});
       callback(prefix + accountId);
     });
   });
@@ -79,3 +78,4 @@ exports.generateUserName = function (req, res) {
     res.send({username: name});
   });
 };
+
