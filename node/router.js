@@ -7,7 +7,7 @@ exports.createRouter = function () {
   });
   router.path('/accounts/', function() {
     var accounts = require('./accounts.js');
-    var pages = ['new', 'generateUserName'];
+    var pages = ['newAccount', 'generateUserName', 'login'];
     for(var i=0; i<pages.length; i++) {
       var page = pages[i];
       this.get(page).bind(accounts[page]);
