@@ -8,15 +8,27 @@ function doesUserExist (username, callback) {
   });
 }
 
+function doesEmailExist (email, callback) {
+  db.accounts.findOne({email: email}, function (err, result) {
+    callback(result !== null);
+  });
+}
+
 function makeNormalAccount (username, unencryptedPassword, email, callback) {
   doesUserExist(username, function(userExists) {
-    if(!userExists) {
+    if(userExists) {
       callback({error: 'Username already exists'});
       return;
     }
-    var password = passwordHash.generate(unencryptedPassword);
-    db.accounts.insert({username: username, password: password, email: email});
-    callback({success: true});
+    doesEmailExist(email, function(emailExists) {
+      if(emailExists) {
+        callback({error: 'Email already exists'});
+        return;
+      }
+      var password = passwordHash.generate(unencryptedPassword);
+      db.accounts.insert({username: username, password: password, email: email});
+      callback({success: true});
+    });
   });
 }
 
