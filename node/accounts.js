@@ -1,8 +1,18 @@
-var db = require('mongojs').connect('ollie', ['accounts', 'accountsMeta']);
+var db = require('mongojs').connect('ollie',
+         ['accounts', 'accountsMeta', 'accountRecovery']);
 var mongodb = require('mongodb');
 var passwordHash = require('password-hash');
 var url = require('url');
 var crypto = require('crypto');
+var constants = require('./game-constants.js');
+var nodemailer = require('nodemailer');
+nodemailer.sendmail = true;
+var transport = nodemailer.createTransport("Sendmail", "/usr/sbin/sendmail");
+
+Date.prototype.addHours = function(h){
+    this.setHours(this.getHours()+h);
+    return this;
+}
 
 function doesUserExist (username, callback) {
   db.accounts.findOne({username: username}, function (err, result) {
@@ -91,6 +101,30 @@ function assertRequiredParameters(query, requiredParameters) {
   return null;
 }
 
+/* Password Recovery */
+function getPasswordResetLink(email, callback) {
+  crypto.randomBytes(8, function(ex, buf) {
+    db.accountRecovery.findOne({email: email}, function (err, result) {
+      if(err) {
+        callback(null);
+        return;
+      }
+      var expires = new Date().addHours(2);
+      var data = {email: email, token: new mongodb.Binary(buf), expires: expires};
+      if(result === null)
+        db.accountRecovery.insert(data);
+      else
+        db.accountRecovery.update({email: email}, data);
+      var encodedToken = encodeURIComponent(buf.toString('base64'));
+      callback(url.format({protocol: 'https:',
+                         hostname: constants.hostname,
+                         pathname: '/accounts/recoverPassword',
+                         query: {email: email, auth: encodedToken}}));
+    });
+  });
+}
+
+/* Exported functions */
 exports.newAccount = function (req, res) {
   var query = url.parse(req.url.href, true).query;
   assertRequiredParameters(query, ['username', 'password', 'email']);
@@ -117,6 +151,44 @@ exports.login = function (req, res) {
     else {
       res.send({error: "Invalid username or password"});
     }
+  });
+};
+
+/* Password recovery exported functions */
+exports.sendRecoveryEmail = function (req, res) {
+  var query = url.parse(req.url.href, true).query;
+  assertRequiredParameters(query, ['email']);
+  var email = query.email;
+  doesEmailExist(email, function (emailExists) {
+    if(!emailExists) {
+      console.log("email " + email + " does not exist");
+      return;
+    }
+    getPasswordResetLink(email, function (link) {
+      if(!link) {
+        res.send({error: 'Password recovery link is invalid. Please try again'});
+        return;
+      }
+      var message = {
+        from: exports.noReplyEmail,
+        to: email,
+        subject: "Recover password for " + constants.gamename,
+        html: '<p>This email has been sent to you automatically from'
+              + constants.gamename +
+              'in response to a request to recover your password.</p>'+
+              '<p>If you did not ask to recover your password, please ignore'+
+              'this email.</p>'+
+              '<p>To reset your password, please click on this link:'+
+              '<a href="' + link + '">' + link + '</a></p>'
+
+      };
+      transport.sendMail(message, function (error) {
+        if(error)
+          console.error("Sending an email encountered an error");
+      });
+      res.send("If the email address exists, the password recovery message " +
+               "has been sent");
+    });
   });
 };
 
