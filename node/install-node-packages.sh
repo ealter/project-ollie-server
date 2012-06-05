@@ -1,2 +1,2 @@
 #!/bin/bash
-npm install mongodb journey password-hash
+npm install mongojs journey password-hash

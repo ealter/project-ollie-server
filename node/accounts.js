@@ -1,36 +1,16 @@
-var mongodb = require("mongodb"),
-    mongoserver = new mongodb.Server('127.0.0.1', 27017, {}),
-    db = new mongodb.Db('ollie', mongoserver);
+var db = require('mongojs').connect('ollie', ['accounts', 'accountsMeta']);
 var passwordHash = require('password-hash');
 var url = require('url');
 
-function getCollection (name, callback) {
-  db.open(function(err, db) {
-    if(!err) {
-      db.collection(name, function(err, collection) {
-        callback(collection);
-      });
-    }
-    else {
-      console.error("Could not open colletion " + name);
-      console.error(err);
-    }
-  });
-}
-
 function doesUserExist (username, callback) {
-  getCollection('accounts', function(collection) {
-    collection.findOne({username: username}, function (err, result) {
-      callback(result !== null);
-    });
+  db.accounts.findOne({username: username}, function (err, result) {
+    callback(result !== null);
   });
 }
 
 function doesEmailExist (email, callback) {
-  getCollection('accounts', function(collection) {
-    collection.findOne({email: email}, function (err, result) {
-      callback(result !== null);
-    });
+  db.accounts.findOne({email: email}, function (err, result) {
+    callback(result !== null);
   });
 }
 
@@ -46,40 +26,35 @@ function makeNormalAccount (username, unencryptedPassword, email, callback) {
         return;
       }
       var password = passwordHash.generate(unencryptedPassword);
-      getCollection('accounts', function(collection) {
-        collection.insert({username: username, password: password, email: email});
-        callback({success: true});
-      });
+      db.accounts.insert({username: username, password: password, email: email});
+      callback({success: true});
     });
   });
 }
 
 function generateUserName(callback) {
-  getCollection('accounts', function(collection) {
-    console.log('got collection');
-    collection.findOne(function (err, result) {
-      var fieldName = 'highestAccountId';
-      var prefix = 'user';
-      var accountId = result !== null ? result[fieldName] : 135821;
-      var checkUserName = function(accountId, callback) {
-        console.log(accountId);
-        doesUserExist(prefix + accountId, function(userExists) {
-          if(userExists)
-            checkUserName(accountId + 1);
-          else
-            callback(accountId);
-        });
-      };
-      checkUserName(accountId, function(accountId) {
-        console.log(accountId);
-        var data = {};
-        data[fieldName] = accountId;
-        if(result === null)
-          collection.insert(data);
+  db.accountsMeta.findOne(function (err, result) {
+    var fieldName = 'highestAccountId';
+    var prefix = 'user';
+    var accountId = result !== null ? result[fieldName] : 135821;
+    var checkUserName = function(accountId, callback) {
+      doesUserExist(prefix + accountId, function(userExists) {
+        if(userExists)
+          checkUserName(accountId + 1);
         else
-          collection.update({}, {$set: data});
-        callback(prefix + accountId);
+          callback(accountId);
       });
+    };
+    checkUserName(accountId, function(accountId) {
+      console.log(accountId);
+      var data = {};
+      data[fieldName] = accountId;
+      if(result === null)
+        db.accountsMeta.insert(data);
+      else
+        //db.accountsMeta.update({}, {$set: data});
+        db.accountsMeta.update({}, data);
+      callback(prefix + accountId);
     });
   });
 };
