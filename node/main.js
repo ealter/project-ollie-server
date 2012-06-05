@@ -5,6 +5,10 @@ http.createServer(function (request, response) {
   var body = '';
   request.on('data', function (chunk) {
     body += chunk;
+    if (body.length > 5e5) {
+      //flood attack or faulty client... nuke request
+      request.connection.destroy();
+    }
   });
 
   request.on('end', function() {
