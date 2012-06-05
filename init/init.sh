@@ -1,2 +1,4 @@
 #!/bin/bash
-./download-packages.sh
+sudo ./download-packages.sh
+cd ../node
+./install-node-packages.sh
