@@ -8,6 +8,8 @@ var constants = require('./game-constants.js');
 var nodemailer = require('nodemailer');
 nodemailer.sendmail = true;
 var transport = nodemailer.createTransport("Sendmail", "/usr/sbin/sendmail");
+var mustache = require('mustache');
+var fs = require('fs');
 
 Date.prototype.addHours = function(h){
     this.setHours(this.getHours()+h);
@@ -70,7 +72,6 @@ function generateUserName(callback) {
   });
 };
 
-//TODO: test this
 function generateAuthToken(username, callback) {
   crypto.randomBytes(16, function(ex, buf) {
     if (ex) throw ex;
@@ -169,25 +170,25 @@ exports.sendRecoveryEmail = function (req, res) {
         res.send({error: 'Password recovery link is invalid. Please try again'});
         return;
       }
-      var message = {
-        from: exports.noReplyEmail,
-        to: email,
-        subject: "Recover password for " + constants.gamename,
-        html: '<p>This email has been sent to you automatically from'
-              + constants.gamename +
-              'in response to a request to recover your password.</p>'+
-              '<p>If you did not ask to recover your password, please ignore'+
-              'this email.</p>'+
-              '<p>To reset your password, please click on this link:'+
-              '<a href="' + link + '">' + link + '</a></p>'
-
-      };
-      transport.sendMail(message, function (error) {
-        if(error)
-          console.error("Sending an email encountered an error");
+      fs.readFile('./passwordRecoveryEmail.html', 'ascii', function (err, template) {
+        if(err) throw err;
+        var message = {
+          from: constants.noReplyEmail,
+          to: email,
+          subject: "Recover password for " + constants.gamename,
+          html: mustache.to_html(template, {companyName: constants.gamename,
+                                            resetLink: link})
+        };
+        console.log(message);
+        transport.sendMail(message, function (error) {
+          if(error)
+            console.error("Sending an email encountered an error");
+          else
+            console.log("message sent");
+        });
+        res.send("If the email address exists, the password recovery message " +
+                 "has been sent");
       });
-      res.send("If the email address exists, the password recovery message " +
-               "has been sent");
     });
   });
 };
