@@ -7,12 +7,12 @@ exports.createRouter = function () {
   });
   router.path('/accounts/', function() {
     var accounts = require('./accounts.js');
-    var pages = ['newAccount', 'generateUserName', 'login', 'sendRecoveryEmail'];
+    var pages = ['newAccount', 'generateUserName', 'login', 'sendRecoveryEmail',
+                 'recoverPassword'];
     for(var i=0; i<pages.length; i++) {
       var page = pages[i];
       this.get(page).bind(accounts[page]);
     }
-    //this.get('new').bind(accounts.newAccount);
   });
   return router;
 };
