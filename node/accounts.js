@@ -241,3 +241,31 @@ exports.recoverPassword = function (req, res) {
   });
 };
 
+exports.resetPassword = function (req, res) {
+  var query = url.parse(req.url.href, true).query;
+  assertRequiredParameters(query, ['email', 'auth', 'password', 'password_repeat']);
+  var formError = function(message) {
+    res.send(message);
+  };
+  var password = query.password;
+  if(password !== query.password_repeat) {
+    formError("The passwords do not match.");
+    return;
+  }
+  if(strlen(password) < constants.minPasswordLength) {
+    formError("The password must be at least " + constants.minPasswordLength +
+              " characters long.");
+    return;
+  }
+  resetPassword(query.email, query.auth, query.password, function (isValid) {
+    if(!isValid) {
+      formError("The password reset link is not valid.");
+      return;
+    }
+    fs.readFile('./passwordResetSuccess.html', function (err, html) {
+      if(err) throw err;
+      res.send(html);
+    });
+  });
+};
+
