@@ -9,10 +9,11 @@ exports.createRouter = function () {
     var accounts = require('./accounts.js');
     var pages = ['newAccount', 'generateUserName', 'login', 'sendRecoveryEmail',
                  'recoverPassword', 'resetPassword', 'logout'];
+    var pageFunctions = accounts.pages;
     for(var i=0; i<pages.length; i++) {
       var page = pages[i];
-      this.post(page).bind(accounts[page]);
-      this.get(page).bind(accounts[page]);
+      this.post(page).bind(pageFunctions[page]);
+      this.get(page).bind(pageFunctions[page]);
     }
   });
   return router;
