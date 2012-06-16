@@ -10,7 +10,6 @@ nodemailer.sendmail = true;
 var transport = nodemailer.createTransport("Sendmail", "/usr/sbin/sendmail");
 var mustache = require('mustache');
 var fs = require('fs');
-var qs = require('qs');
 
 Date.prototype.addHours = function(h){
     this.setHours(this.getHours()+h);
