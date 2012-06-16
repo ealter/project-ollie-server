@@ -75,7 +75,8 @@ function generateUserName(callback) {
 function generateAuthToken(username, callback) {
   crypto.randomBytes(16, function(ex, buf) {
     if (ex) throw ex;
-    var token = new mongodb.Binary(buf);
+    var hashedToken = passwordHash.hash(buf);
+    var token = new mongodb.Binary(hashedToken);
     db.accounts.update({username: username},
                        {$set: {token: token, tokenDate: new Date()}});
     callback(buf);
@@ -92,6 +93,18 @@ function login(username, unencryptedPassword, callback) {
   });
 }
 
+function logout(username, auth_token, callback) {
+  isAuthTokenValid(username, auth_token, function (isValid) {
+    if(!isValid) {
+      callback(false);
+      return;
+    }
+    db.accounts.update({username: username}, {token: nil, tokenDate: nil});
+    //TODO: maybe call callback only if update succeeded?
+    callback(true);
+  });
+}
+
 function assertRequiredParameters(query, requiredParameters) {
   for (var i=0; i < requiredParameters.length; i++) {
     var propName = requiredParameters[i];
@@ -100,6 +113,17 @@ function assertRequiredParameters(query, requiredParameters) {
     }
   }
   return null;
+}
+
+function isAuthTokenValid(username, auth_token, callback) {
+  db.accounts.findOne({username: username}, function (err, result) {
+    if(err || result == null) {
+      callback(false);
+      return;
+    }
+    //TODO: make auth tokens expire?
+    callback(passwordHash.verify(auth_token, result.token));
+  });
 }
 
 /* Password Recovery */
@@ -182,6 +206,16 @@ exports.login = function (req, res, query) {
     else {
       res.send({error: "Invalid username or password"});
     }
+  });
+};
+
+exports.logout = function (req, res, query) {
+  assertRequiredParameters(query, ['username', 'auth_token']);
+  logout(query.username, query.auth_token, function (success) {
+    if(success)
+      res.send({success: true});
+    else
+      res.send({error: "logout failed"});
   });
 };
 
