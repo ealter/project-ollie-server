@@ -11,6 +11,7 @@ exports.createRouter = function () {
                  'recoverPassword', 'resetPassword'];
     for(var i=0; i<pages.length; i++) {
       var page = pages[i];
+      this.post(page).bind(accounts[page]);
       this.get(page).bind(accounts[page]);
     }
   });

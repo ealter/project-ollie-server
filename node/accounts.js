@@ -10,6 +10,7 @@ nodemailer.sendmail = true;
 var transport = nodemailer.createTransport("Sendmail", "/usr/sbin/sendmail");
 var mustache = require('mustache');
 var fs = require('fs');
+var qs = require('qs');
 
 Date.prototype.addHours = function(h){
     this.setHours(this.getHours()+h);
@@ -158,8 +159,7 @@ function resetPassword(email, token, unencryptedPassword, callback) {
 }
 
 /* Exported functions */
-exports.newAccount = function (req, res) {
-  var query = url.parse(req.url.href, true).query;
+exports.newAccount = function (req, res, query) {
   assertRequiredParameters(query, ['username', 'password', 'email']);
   makeNormalAccount(query.username, query.password, query.email, function (success) {
     res.send(success);
@@ -172,8 +172,7 @@ exports.generateUserName = function (req, res) {
   });
 };
 
-exports.login = function (req, res) {
-  var query = url.parse(req.url.href, true).query;
+exports.login = function (req, res, query) {
   assertRequiredParameters(query, ['username', 'password']);
   login(query.username, query.password, function (success) {
     if(success) {
@@ -188,8 +187,7 @@ exports.login = function (req, res) {
 };
 
 /* Password recovery exported functions */
-exports.sendRecoveryEmail = function (req, res) {
-  var query = url.parse(req.url.href, true).query;
+exports.sendRecoveryEmail = function (req, res, query) {
   assertRequiredParameters(query, ['email']);
   var email = query.email;
   doesEmailExist(email, function (emailExists) {
@@ -224,8 +222,7 @@ exports.sendRecoveryEmail = function (req, res) {
   });
 };
 
-exports.recoverPassword = function (req, res) {
-  var query = url.parse(req.url.href, true).query;
+exports.recoverPassword = function (req, res, query) {
   assertRequiredParameters(query, ['email', 'auth']);
   isPasswordResetTokenValid(query.email, query.auth, function (valid) {
     if(!valid) {
@@ -241,8 +238,7 @@ exports.recoverPassword = function (req, res) {
   });
 };
 
-exports.resetPassword = function (req, res) {
-  var query = url.parse(req.url.href, true).query;
+exports.resetPassword = function (req, res, query) {
   assertRequiredParameters(query, ['email', 'auth', 'password', 'password_repeat']);
   var formError = function(message) {
     res.send(message);
