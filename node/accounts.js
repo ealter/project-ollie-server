@@ -75,7 +75,8 @@ function generateUserName(callback) {
 function generateAuthToken(username, callback) {
   crypto.randomBytes(16, function(ex, buf) {
     if (ex) throw ex;
-    var token = passwordHash.generate(buf);
+    var hashedToken = passwordHash.generate(buf);
+    var token = new mongodb.Binary(hashedToken);
     db.accounts.update({username: username},
                        {$set: {token: token, tokenDate: new Date()}});
     callback(buf);
