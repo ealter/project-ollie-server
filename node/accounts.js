@@ -175,7 +175,7 @@ function resetPassword(email, token, unencryptedPassword, callback) {
     };
     transport.sendMail(message, function (error) {
       if(error)
-        console.error("Sending email confirming a pssword change failed");
+        console.error("Sending email confirming a password change failed");
     });
     callback(true);
   });
