@@ -75,10 +75,11 @@ function generateUserName(callback) {
 function generateAuthToken(username, callback) {
   crypto.randomBytes(16, function(ex, buf) {
     if (ex) throw ex;
-    var token = passwordHash.generate(buf);
+    var token = buf.toString('base64');
+    var encryptedToken = passwordHash.generate(buf.toString('base64'));
     db.accounts.update({username: username},
-                       {$set: {token: token, tokenDate: new Date()}});
-    callback(buf);
+                       {$set: {token: encryptedToken, tokenDate: new Date()}});
+    callback(token);
   });
 }
 
@@ -203,7 +204,7 @@ pages.login = function (req, res, query) {
   login(query.username, query.password, function (success) {
     if(success) {
       generateAuthToken(query.username, function (token) {
-        res.send({auth_token: token.toString('base64')});
+        res.send({auth_token: token});
       });
     }
     else {
