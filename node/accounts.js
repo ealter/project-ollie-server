@@ -21,6 +21,7 @@ function doesEmailExist (email, callback) {
 }
 
 function makeNormalAccount (username, unencryptedPassword, email, callback) {
+  username = username.toLowerCase();
   doesUserExist(username, function(userExists) {
     if(userExists) {
       callback({error: 'Username already exists'});
