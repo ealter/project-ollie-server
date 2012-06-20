@@ -71,7 +71,7 @@ function generateAuthToken(username, callback) {
     var token = buf.toString('base64');
     var encryptedToken = passwordHash.generate(buf.toString('base64'));
     db.accounts.update({username: username},
-                       {$set: {token: encryptedToken, tokenDate: new Date()}});
+                       {$set: {auth_token: encryptedToken, auth_tokenDate: new Date()}});
     callback(token);
   });
 }
@@ -92,7 +92,7 @@ function logout(username, auth_token, callback) {
       callback(false);
       return;
     }
-    db.accounts.update({username: username}, {token: nil, tokenDate: nil});
+    db.accounts.update({username: username}, {auth_token: nil, auth_tokenDate: nil});
     //TODO: maybe call callback only if update succeeded?
     callback(true);
   });
@@ -115,7 +115,7 @@ function isAuthTokenValid(username, auth_token, callback) {
       return;
     }
     //TODO: make auth tokens expire?
-    callback(passwordHash.verify(auth_token, result.token));
+    callback(passwordHash.verify(auth_token, result.auth_token));
   });
 }
 
