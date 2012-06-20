@@ -64,17 +64,6 @@ function generateUserName(callback) {
   });
 };
 
-function generateAuthToken(username, callback) {
-  crypto.randomBytes(16, function(ex, buf) {
-    if (ex) throw ex;
-    var token = buf.toString('base64');
-    var encryptedToken = passwordHash.generate(buf.toString('base64'));
-    db.accounts.update({username: username},
-                       {$set: {auth_token: encryptedToken, auth_tokenDate: new Date()}});
-    callback(token);
-  });
-}
-
 function login(username, unencryptedPassword, callback) {
   db.accounts.findOne({username: username}, function(err, result) {
     if(err || result === null) {
@@ -105,6 +94,17 @@ function assertRequiredParameters(query, requiredParameters) {
     }
   }
   return null;
+}
+
+function generateAuthToken(username, callback) {
+  crypto.randomBytes(16, function(ex, buf) {
+    if (ex) throw ex;
+    var token = buf.toString('base64');
+    var encryptedToken = passwordHash.generate(buf.toString('base64'));
+    db.accounts.update({username: username},
+                       {$set: {auth_token: encryptedToken, auth_tokenDate: new Date()}});
+    callback(token);
+  });
 }
 
 function isAuthTokenValid(username, auth_token, callback) {
