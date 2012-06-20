@@ -162,6 +162,27 @@ pages.logout = function (req, res, query) {
   });
 };
 
+pages.facebookLogin = function (req, res, query) {
+  assertRequiredParameters(query, ['facebookUserId']);
+  var usernameCallback = function (username) {
+    var data = {facebook: {userId: query.facebookUserId}};
+    db.accounts.update({username: username}, {$set: data});
+    generateAuthToken(username, function (auth_token) {
+      res.send({username: username, auth_token: auth_token});
+    });
+  };
+  if(!(query.username && query.auth_token))
+    generateUserName(usernameCallback);
+  else {
+    isAuthTokenValid(query.username, query.auth_token, function (isValid) {
+      if(isValid)
+        usernameCallback(query.username);
+      else
+        res.send({error: "Either the username or the authorization token is invalid"});
+    });
+  }
+};
+
 pages.sendRecoveryEmail = passwordReset.sendRecoveryEmail;
 pages.recoverPassword   = passwordReset.recoverPassword;
 pages.resetPassword     = passwordReset.resetPassword;
