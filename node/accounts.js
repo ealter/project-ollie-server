@@ -171,9 +171,19 @@ pages.facebookLogin = function (req, res, query) {
       res.send({username: username, auth_token: auth_token});
     });
   };
-  if(!(query.username && query.auth_token))
-    generateUserName(usernameCallback);
-  else {
+  if(!(query.username && query.auth_token)) {
+    generateUserName(function (username) {
+      var data = {username: username};
+      if(query.email)
+        data.email = query.email;
+      db.accounts.insert(data, function (err, result) {
+        if(err)
+          res.send({error: "Unknown error when generating username"});
+        else
+          usernameCallback(username);
+      });
+    });
+  } else {
     isAuthTokenValid(query.username, query.auth_token, function (isValid) {
       if(isValid)
         usernameCallback(query.username);
