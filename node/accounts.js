@@ -53,7 +53,6 @@ function generateUserName(callback) {
       });
     };
     checkUserName(accountId, function(accountId) {
-      console.log(accountId);
       var data = {};
       data[fieldName] = accountId + 1;
       if(result === null)
