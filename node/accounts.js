@@ -1,3 +1,4 @@
+var https = require('https');
 var db = require('mongojs').connect('ollie', ['accounts', 'accountsMeta']);
 var passwordHash = require('password-hash');
 var crypto = require('crypto');
@@ -132,6 +133,31 @@ function isAuthTokenValid(username, auth_token, callback) {
   });
 }
 
+/* On success, it calls the callback with the userId. On failure, it calls the
+ * callback with null. */
+function userIdForFacebookAccessToken(accessToken, callback)
+{
+  var options = {host: 'graph.facebook.com',
+                 path: '/me?access_token=' + accessToken};
+  var req = https.request(options, function (res) {
+    var body = ''
+    res.on('data', function (chunk) {
+      body += chunk;
+    });
+    res.on('end', function () {
+      var data = JSON.parse(body);
+      if(data.hasOwnProperty('error'))
+        callback(null);
+      else
+        callback(data.id);
+    });
+  });
+  req.end();
+  req.on('error', function (e) {
+    console.error(e);
+  });
+}
+
 /* Exported functions */
 var pages = {};
 exports.pages = pages;
@@ -206,43 +232,53 @@ pages.logout = function (req, res, query) {
 };
 
 pages.facebookLogin = function (req, res, query) {
-  assertRequiredParameters(query, ['facebookUserId']);
-  var usernameCallback = function (username) {
-    var data = {facebook: {userId: query.facebookUserId}};
-    db.accounts.update({username: username}, {$set: data});
-    generateAuthToken(username, function (auth_token) {
-      res.send({username: username, auth_token: auth_token});
-    });
-  };
-  db.accounts.findOne({facebook: {userId: query.facebookUserId}}, function (err, result) {
-    if(err) {
-      res.send({error: "Unknown error with the database"});
+  assertRequiredParameters(query, ['facebookAccessToken']);
+  userIdForFacebookAccessToken(query.facebookAccessToken, function (userId) {
+    if(!facebookUserId) {
+      res.send({error: "Invalid facebook access token"});
       return;
     }
-    if(result && (result.username != query.username || !query.username)) {
-      res.send({error: "Facebook user already exists under another username"});
-      return;
-    }
-    if(!(query.username && query.auth_token)) {
-      generateUserName(function (username) {
-        var data = {username: username};
-        if(query.email)
-          data.email = query.email;
-        db.accounts.insert(data, function (err, result) {
-          if(err)
-            res.send({error: "Unknown error when generating username"});
+    var usernameCallback = function (username) {
+      var data = {facebook: {userId: userId}};
+      db.accounts.update({username: username}, {$set: data});
+      generateAuthToken(username, function (auth_token) {
+        res.send({username: username, auth_token: auth_token});
+      });
+    };
+    db.accounts.findOne({facebook: {userId: userId}}, function (err, result) {
+      if(err) {
+        res.send({error: "Unknown error with the database"});
+        return;
+      }
+      if(result && (result.username != query.username.toLowerCase())) {
+        res.send({error: "Facebook user already exists under another username"});
+        return;
+      }
+      if(!(query.username && query.auth_token)) {
+        if(result) {
+          usernameCallback(result.username);
+        } else {
+          generateUserName(function (username) {
+            var data = {username: username};
+            if(query.email)
+              data.email = query.email;
+            db.accounts.insert(data, function (err, result) {
+              if(err)
+                res.send({error: "Unknown error when generating username"});
+              else
+                usernameCallback(username);
+            });
+          });
+        }
+      } else {
+        isAuthTokenValid(query.username, query.auth_token, function (isValid) {
+          if(isValid)
+            usernameCallback(query.username);
           else
-            usernameCallback(username);
+            res.send({error: "Either the username or the authorization token is invalid"});
         });
-      });
-    } else {
-      isAuthTokenValid(query.username, query.auth_token, function (isValid) {
-        if(isValid)
-          usernameCallback(query.username);
-        else
-          res.send({error: "Either the username or the authorization token is invalid"});
-      });
-    }
+      }
+    });
   });
 };
 

@@ -8,7 +8,8 @@ exports.createRouter = function () {
   router.path('/accounts/', function() {
     var accounts = require('./accounts.js');
     var pages = ['newAccount', 'generateUserName', 'login', 'sendRecoveryEmail',
-                 'recoverPassword', 'resetPassword', 'logout', 'facebookLogin'];
+                 'recoverPassword', 'resetPassword', 'logout', 'facebookLogin',
+                 'changeUserName'];
     var pageFunctions = accounts.pages;
     for(var i=0; i<pages.length; i++) {
       var page = pages[i];
