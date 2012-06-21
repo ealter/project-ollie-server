@@ -3,3 +3,5 @@ exports.hostname = 'localhost';
 exports.gamename = 'Gorilla Warefare';
 exports.noReplyEmail = 'M8R-x1hmki@mailinator.com' //gorilla-warefare@mailinator
 exports.minPasswordLength = 6;
+exports.databaseName = 'ollie';
+

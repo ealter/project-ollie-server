@@ -1,5 +1,7 @@
 var https = require('https');
-var db = require('mongojs').connect('ollie', ['accounts', 'accountsMeta']);
+var gameConstants = require('./game-constants');
+var db = require('mongojs').connect(gameConstants.databaseName,
+                                   ['accounts', 'accountsMeta']);
 var passwordHash = require('password-hash');
 var crypto = require('crypto');
 var passwordReset = require('./passwordReset');
