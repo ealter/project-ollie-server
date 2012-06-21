@@ -5,6 +5,7 @@ var db = require('mongojs').connect(gameConstants.databaseName,
 var passwordHash = require('password-hash');
 var crypto = require('crypto');
 var passwordReset = require('./passwordReset');
+var check = require('validator').check;
 
 Date.prototype.addHours = function(h){
     this.setHours(this.getHours()+h);
@@ -104,14 +105,15 @@ function logout(username, auth_token, callback) {
   });
 }
 
-function assertRequiredParameters(query, requiredParameters) {
+function assertRequiredParameters(res, query, requiredParameters) {
   for (var i=0; i < requiredParameters.length; i++) {
     var propName = requiredParameters[i];
     if(!query.hasOwnProperty(propName) || query[propName] === "") {
-      return {error: 'Missing parameter ' + propName};
+      res.send({error: 'Missing parameter ' + propName});
+      return false;
     }
   }
-  return null;
+  return true;
 }
 
 function generateAuthToken(username, callback) {
@@ -168,7 +170,8 @@ exports.isAuthTokenValid = isAuthTokenValid;
 exports.generateUserName = generateUserName;
 
 pages.newAccount = function (req, res, query) {
-  assertRequiredParameters(query, ['username', 'password', 'email']);
+  if(!assertRequiredParameters(res, query, ['username', 'password', 'email']))
+    return;
   makeNormalAccount(query.username, query.password, query.email, function (success) {
     res.send(success);
   });
@@ -181,7 +184,8 @@ pages.generateUserName = function (req, res) {
 };
 
 pages.changeUserName = function (req, res, query) {
-  assertRequiredParameters(query, ['username', 'newUsername', 'auth_token']);
+  if(!assertRequiredParameters(res, query, ['username', 'newUsername', 'auth_token']))
+    return;
   var originalUsername = query.username;
   var newUsername      = query.newUsername;
   isAuthTokenValid(originalUsername, query.auth_token, function (isValid) {
@@ -211,7 +215,8 @@ pages.changeUserName = function (req, res, query) {
 };
 
 pages.login = function (req, res, query) {
-  assertRequiredParameters(query, ['username', 'password']);
+  if(!assertRequiredParameters(res, query, ['username', 'password']))
+    return;
   login(query.username, query.password, function (success) {
     if(success) {
       generateAuthToken(query.username, function (token) {
@@ -225,7 +230,8 @@ pages.login = function (req, res, query) {
 };
 
 pages.logout = function (req, res, query) {
-  assertRequiredParameters(query, ['username', 'auth_token']);
+  if(!assertRequiredParameters(res, query, ['username', 'auth_token']))
+    return;
   logout(query.username, query.auth_token, function (success) {
     if(success)
       res.send({success: true});
@@ -235,7 +241,8 @@ pages.logout = function (req, res, query) {
 };
 
 pages.facebookLogin = function (req, res, query) {
-  assertRequiredParameters(query, ['facebookAccessToken']);
+  if(!assertRequiredParameters(res, query, ['facebookAccessToken']))
+    return;
   userIdForFacebookAccessToken(query.facebookAccessToken, function (userId) {
     if(!userId) {
       res.send({error: "Invalid facebook access token"});

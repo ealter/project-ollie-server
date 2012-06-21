@@ -10,7 +10,8 @@
     "mongodb": "1.0.x",
     "mustache": "0.4.x",
     "nodemailer": "0.3.x",
-    "password-hash": "1.2.x"
+    "password-hash": "1.2.x",
+    "validator": "0.4.x"
   },
   "engines": {
     "node": ">= 0.6.0"
