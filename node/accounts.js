@@ -8,14 +8,22 @@ Date.prototype.addHours = function(h){
     return this;
 }
 
+function getUsernameDetails(username, callback) {
+  db.accounts.findOne({username: username.toLowerCase()}, callback);
+}
+
+function getEmailDetails(email, callback) {
+  db.accounts.findOne({email: email.toLowerCase()}, callback);
+}
+
 function doesUserExist (username, callback) {
-  db.accounts.findOne({username: username}, function (err, result) {
+  getUsernameDetails(function (err, result) {
     callback(result !== null);
   });
 }
 
 function doesEmailExist (email, callback) {
-  db.accounts.findOne({email: email}, function (err, result) {
+  getEmailDetails(function (err, result) {
     callback(result !== null);
   });
 }
@@ -64,8 +72,14 @@ function generateUserName(callback) {
   });
 };
 
+/* Precondition: the original already exists, but the new one does not */
+function changeUserName(originalUsername, newUsername, callback) {
+  db.accounts.update({username: originalUsername.toLowerCase()},
+                     {$set: {username: newUsername.toLowerCase()}}, callback);
+}
+
 function login(username, unencryptedPassword, callback) {
-  db.accounts.findOne({username: username}, function(err, result) {
+  getUsernameDetails(function(err, result) {
     if(err || result === null) {
       callback(false);
       return;
@@ -80,7 +94,7 @@ function logout(username, auth_token, callback) {
       callback(false);
       return;
     }
-    db.accounts.update({username: username}, {auth_token: nil, auth_tokenDate: nil});
+    db.accounts.update({username: username.toLowerCase()}, {$set: {auth_token: nil, auth_tokenDate: nil}});
     //TODO: maybe call callback only if update succeeded?
     callback(true);
   });
@@ -101,14 +115,14 @@ function generateAuthToken(username, callback) {
     if (ex) throw ex;
     var token = buf.toString('base64');
     var encryptedToken = passwordHash.generate(buf.toString('base64'));
-    db.accounts.update({username: username},
+    db.accounts.update({username: username.toLowerCase()},
                        {$set: {auth_token: encryptedToken, auth_tokenDate: new Date()}});
     callback(token);
   });
 }
 
 function isAuthTokenValid(username, auth_token, callback) {
-  db.accounts.findOne({username: username}, function (err, result) {
+  getUsernameDetails(function (err, result) {
     if(err || result == null) {
       callback(false);
       return;
@@ -134,6 +148,36 @@ pages.newAccount = function (req, res, query) {
 pages.generateUserName = function (req, res) {
   generateUserName(function (name) {
     res.send({username: name});
+  });
+};
+
+pages.changeUserName = function (req, res, query) {
+  assertRequiredParameters(query, ['username', 'newUsername', 'auth_token']);
+  var originalUsername = query.username;
+  var newUsername      = query.newUsername;
+  isAuthTokenValid(originalUsername, query.auth_token, function (isValid) {
+    if(!isValid) {
+      res.send({error: "Invalid authorization token"});
+      return;
+    }
+    doesUserExist(originalUsername, function (originalExists) {
+      if(!originalExists) {
+        res.send({error: "Current username does not exist"});
+        return;
+      }
+      doesUserExist(newUsername, function (newUsernameExists) {
+        if(newUsernameExists) {
+          res.send({error: "New username already exists"});
+        } else {
+          changeUserName(originalUsername, newUsername, function (success) {
+            if(success)
+              res.send({success: true});
+            else
+              res.send({error: "An unknown error occurred when changing the username"});
+          });
+        }
+      });
+    });
   });
 };
 
@@ -170,26 +214,36 @@ pages.facebookLogin = function (req, res, query) {
       res.send({username: username, auth_token: auth_token});
     });
   };
-  if(!(query.username && query.auth_token)) {
-    generateUserName(function (username) {
-      var data = {username: username};
-      if(query.email)
-        data.email = query.email;
-      db.accounts.insert(data, function (err, result) {
-        if(err)
-          res.send({error: "Unknown error when generating username"});
-        else
-          usernameCallback(username);
+  db.accounts.findOne({facebook: {userId: query.facebookUserId}}, function (err, result) {
+    if(err) {
+      res.send({error: "Unknown error with the database"});
+      return;
+    }
+    if(result && (result.username != query.username || !query.username)) {
+      res.send({error: "Facebook user already exists under another username"});
+      return;
+    }
+    if(!(query.username && query.auth_token)) {
+      generateUserName(function (username) {
+        var data = {username: username};
+        if(query.email)
+          data.email = query.email;
+        db.accounts.insert(data, function (err, result) {
+          if(err)
+            res.send({error: "Unknown error when generating username"});
+          else
+            usernameCallback(username);
+        });
       });
-    });
-  } else {
-    isAuthTokenValid(query.username, query.auth_token, function (isValid) {
-      if(isValid)
-        usernameCallback(query.username);
-      else
-        res.send({error: "Either the username or the authorization token is invalid"});
-    });
-  }
+    } else {
+      isAuthTokenValid(query.username, query.auth_token, function (isValid) {
+        if(isValid)
+          usernameCallback(query.username);
+        else
+          res.send({error: "Either the username or the authorization token is invalid"});
+      });
+    }
+  });
 };
 
 pages.sendRecoveryEmail = passwordReset.sendRecoveryEmail;
