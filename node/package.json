@@ -1,0 +1,22 @@
+{
+  "name": "project-ollie",
+  "author": {
+    "name": "Eliot Alter",
+    "email": "Eliot.Alter@tufts.edu"
+  },
+  "version": "0.0.1",
+  "dependencies": {
+    "mongojs": "0.4.x",
+    "mongodb": "1.0.x",
+    "mustache": "0.4.x",
+    "nodemailer": "0.3.x",
+    "password-hash": "1.2.x"
+  },
+  "engines": {
+    "node": ">= 0.6.0"
+  },
+  "scripts": {
+    "preinstall": "npm install -g supervisor"
+  }
+}
+
