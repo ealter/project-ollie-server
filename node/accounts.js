@@ -17,13 +17,13 @@ function getEmailDetails(email, callback) {
 }
 
 function doesUserExist (username, callback) {
-  getUsernameDetails(function (err, result) {
+  getUsernameDetails(username, function (err, result) {
     callback(result !== null);
   });
 }
 
 function doesEmailExist (email, callback) {
-  getEmailDetails(function (err, result) {
+  getEmailDetails(email, function (err, result) {
     callback(result !== null);
   });
 }
@@ -79,7 +79,7 @@ function changeUserName(originalUsername, newUsername, callback) {
 }
 
 function login(username, unencryptedPassword, callback) {
-  getUsernameDetails(function(err, result) {
+  getUsernameDetails(username, function(err, result) {
     if(err || result === null) {
       callback(false);
       return;
@@ -122,7 +122,7 @@ function generateAuthToken(username, callback) {
 }
 
 function isAuthTokenValid(username, auth_token, callback) {
-  getUsernameDetails(function (err, result) {
+  getUsernameDetails(username, function (err, result) {
     if(err || result == null) {
       callback(false);
       return;
