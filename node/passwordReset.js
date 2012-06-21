@@ -11,6 +11,7 @@ var mustache = require('mustache');
 var constants = require('./game-constants.js');
 
 function getPasswordResetLink(email, callback) {
+  email = email.toLowerCase();
   crypto.randomBytes(8, function(ex, buf) {
     db.accountRecovery.findOne({email: email}, function (err, result) {
       if(err) {
@@ -33,12 +34,14 @@ function getPasswordResetLink(email, callback) {
 }
 
 function isPasswordResetTokenValid(email, token, callback) {
+  email = email.toLowerCase();
   db.accountRecovery.findOne({email: email, token: token}, function (err, result) {
     callback(result !== null && result.expires >= new Date());
   });
 }
 
 function resetPassword(email, token, unencryptedPassword, callback) {
+  email = email.toLowerCase();
   isPasswordResetTokenValid(email, token, function(valid) {
     if(!valid) {
       callback(false);
@@ -66,7 +69,7 @@ function resetPassword(email, token, unencryptedPassword, callback) {
 
 exports.sendRecoveryEmail = function (req, res, query) {
   assertRequiredParameters(query, ['email']);
-  var email = query.email;
+  var email = query.email.toLowerCase();
   doesEmailExist(email, function (emailExists) {
     if(!emailExists) {
       console.log("email " + email + " does not exist");
