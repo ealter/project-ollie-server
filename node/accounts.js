@@ -95,7 +95,8 @@ function logout(username, auth_token, callback) {
       callback(false);
       return;
     }
-    db.accounts.update({username: username.toLowerCase()}, {$set: {auth_token: nil, auth_tokenDate: nil}});
+    db.accounts.update({username: username.toLowerCase()},
+                       {$set: {auth_token: null, auth_tokenDate: null}});
     //TODO: maybe call callback only if update succeeded?
     callback(true);
   });
@@ -234,7 +235,7 @@ pages.logout = function (req, res, query) {
 pages.facebookLogin = function (req, res, query) {
   assertRequiredParameters(query, ['facebookAccessToken']);
   userIdForFacebookAccessToken(query.facebookAccessToken, function (userId) {
-    if(!facebookUserId) {
+    if(!userId) {
       res.send({error: "Invalid facebook access token"});
       return;
     }
@@ -250,7 +251,7 @@ pages.facebookLogin = function (req, res, query) {
         res.send({error: "Unknown error with the database"});
         return;
       }
-      if(result && (result.username != query.username.toLowerCase())) {
+      if(result && query.username && (result.username != query.username.toLowerCase())) {
         res.send({error: "Facebook user already exists under another username"});
         return;
       }
