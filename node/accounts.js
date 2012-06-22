@@ -202,11 +202,11 @@ pages.changeUserName = function (req, res, query) {
         if(newUsernameExists) {
           res.send({error: "New username already exists"});
         } else {
-          changeUserName(originalUsername, newUsername, function (success) {
-            if(success)
-              res.send({success: true});
-            else
+          changeUserName(originalUsername, newUsername, function (err, result) {
+            if(err)
               res.send({error: "An unknown error occurred when changing the username"});
+            else
+              res.send({success: true});
           });
         }
       });
