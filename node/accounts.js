@@ -22,6 +22,9 @@ function getEmailDetails(email, callback) {
 
 function doesUserExist (username, callback) {
   getUsernameDetails(username, function (err, result) {
+    if(result === undefined) {
+      console.error("The mongodb server might be down!");
+    }
     callback(result !== null);
   });
 }
@@ -203,9 +206,10 @@ pages.changeUserName = function (req, res, query) {
           res.send({error: "New username already exists"});
         } else {
           changeUserName(originalUsername, newUsername, function (err, result) {
-            if(err)
+            if(err) {
               res.send({error: "An unknown error occurred when changing the username"});
-            else
+              console.log(err);
+            } else
               res.send({success: true});
           });
         }
