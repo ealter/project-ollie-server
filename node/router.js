@@ -5,17 +5,19 @@ exports.createRouter = function () {
   router.get('/').bind(function (req, res) {
     res.send('Nothing to show here');
   });
-  router.path('/accounts/', function() {
-    var accounts = require('./accounts.js');
-    var pages = ['newAccount', 'generateUserName', 'login', 'sendRecoveryEmail',
-                 'recoverPassword', 'resetPassword', 'logout', 'facebookLogin',
-                 'changeUserName'];
-    var pageFunctions = accounts.pages;
-    for(var i=0; i<pages.length; i++) {
-      var page = pages[i];
-      this.post(page).bind(pageFunctions[page]);
-      this.get(page).bind(pageFunctions[page]);
-    }
-  });
+  var paths = ['accounts'];
+  for(var i=0; i<paths.length; i++) {
+    var path = paths[i];
+    router.path('/' + path + '/', function() {
+      var pages = require('./' + path + '.js').pages;
+      for(var page in pages) {
+        if(pages.hasOwnProperty(page)) {
+          this.post(page).bind(pages[page]);
+          this.get(page).bind(pages[page]);
+        }
+      }
+    });
+  }
+
   return router;
 };
