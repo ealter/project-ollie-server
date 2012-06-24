@@ -171,6 +171,8 @@ var pages = {};
 exports.pages = pages;
 exports.isAuthTokenValid = isAuthTokenValid;
 exports.generateUserName = generateUserName;
+exports.doesUserExist    = doesUserExist;
+exports.assertRequiredParameters = assertRequiredParameters;
 
 pages.newAccount = function (req, res, query) {
   if(!assertRequiredParameters(res, query, ['username', 'password', 'email']))

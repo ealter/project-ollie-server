@@ -5,7 +5,7 @@ exports.createRouter = function () {
   router.get('/').bind(function (req, res) {
     res.send('Nothing to show here');
   });
-  var paths = ['accounts'];
+  var paths = ['accounts', 'matchmaking'];
   for(var i=0; i<paths.length; i++) {
     var path = paths[i];
     router.path('/' + path + '/', function() {
