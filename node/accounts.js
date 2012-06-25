@@ -302,3 +302,4 @@ pages.sendRecoveryEmail = passwordReset.sendRecoveryEmail;
 pages.recoverPassword   = passwordReset.recoverPassword;
 pages.resetPassword     = passwordReset.resetPassword;
 
+

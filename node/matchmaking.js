@@ -9,12 +9,13 @@ exports.pages = pages;
 pages.searchUsername = function (req, res, query) {
   if(!assertRequiredParameters(res, query, ['query']))
     return;
-  //TODO: maybe return an array
   db.accounts.findOne({username: query.query}, {username: true}, function (err, result) {
     if(err) {
       res.send({error: err});
+    } else if(result) {
+      res.send({usernames: [result.username]});
     } else {
-      res.send(result);
+      res.send({usernames: []});
     }
   });
 };
