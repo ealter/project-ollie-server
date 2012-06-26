@@ -1,7 +1,25 @@
-var assertRequiredParameters = require('./accounts').assertRequiredParameters;
+var accounts = require('./accounts');
+var assertRequiredParameters = accounts.assertRequiredParameters;
 var gameConstants = require('./game-constants');
 var db = require('mongojs').connect(gameConstants.databaseName,
                                    ['accounts']);
+
+//TODO: base this on rankings
+//TODO: We probably want to store this in a database
+function getRandomPlayer(username, callback) {
+  var self = getRandomPlayer;
+  if(typeof(self.queue) === 'undefined') {
+    self.queue = [];
+  }
+  var queue = self.queue;
+  if(typeof queue[0] === 'undefined') {
+    queue.push({username: username, callback: callback});
+  } else {
+    var opponent = queue.shift();
+    callback(opponent.username);
+    opponent.callback(username);
+  }
+}
 
 var pages = {};
 exports.pages = pages;
@@ -16,6 +34,21 @@ pages.searchUsername = function (req, res, query) {
       res.send({usernames: [result.username]});
     } else {
       res.send({usernames: []});
+    }
+  });
+};
+
+pages.findRandomPlayer = function (req, res, query) {
+  if(!assertRequiredParameters(res, query, ['username', 'auth_token']))
+    return;
+  var username = query.username;
+  accounts.isAuthTokenValid(username, query.auth_token, function (isValid) {
+    if(!isValid) {
+      res.send({error: "Invalid authorization"});
+    } else {
+      getRandomPlayer(username, function (opponent) {
+        res.send({username: username, opponent: opponent});
+      });
     }
   });
 };

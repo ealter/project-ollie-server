@@ -15,4 +15,5 @@ function getPlayerScores(winnerELO, loserELO, kFactor) {
 
 exports.getKFactor = getKFactor;
 exports.getPlayerScores = getPlayerScores;
+exports.initialScore = 1200;
 
