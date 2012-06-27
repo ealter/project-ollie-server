@@ -1,6 +1,7 @@
 var http = require('http');
 var router = require('./router').createRouter();
 
+var port = 1337;
 http.createServer(function (request, response) {
   var body = '';
   request.on('data', function (chunk) {
@@ -17,7 +18,7 @@ http.createServer(function (request, response) {
       response.end(route.body);
     });
   });
-}).listen(80);
+}).listen(port);
 
-console.log('The server is running');
+console.log('The server is running at port ' + port);
 
