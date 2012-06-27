@@ -1,3 +1,4 @@
+var _ = require('underscore');
 var accounts = require('./accounts');
 var assertRequiredParameters = accounts.assertRequiredParameters;
 var gameConstants = require('./game-constants');
@@ -8,11 +9,11 @@ var db = require('mongojs').connect(gameConstants.databaseName,
 //TODO: We probably want to store this in a database
 function getRandomPlayer(username, callback) {
   var self = getRandomPlayer;
-  if(typeof(self.queue) === 'undefined') {
+  if(_.isUndefined(self.queue)) {
     self.queue = [];
   }
   var queue = self.queue;
-  if(typeof queue[0] === 'undefined') {
+  if(_.isUndefined(queue[0]) {
     queue.push({username: username, callback: callback});
   } else {
     var opponent = queue.shift();
