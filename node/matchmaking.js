@@ -13,7 +13,7 @@ function getRandomPlayer(username, callback) {
     self.queue = [];
   }
   var queue = self.queue;
-  if(_.isUndefined(queue[0]) {
+  if(_.isUndefined(queue[0])) {
     queue.push({username: username, callback: callback});
   } else {
     var opponent = queue.shift();
