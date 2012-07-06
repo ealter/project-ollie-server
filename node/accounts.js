@@ -31,6 +31,9 @@ function doesUserExist (username, callback) {
 
 function doesEmailExist (email, callback) {
   getEmailDetails(email, function (err, result) {
+    if(result === undefined) {
+      console.error("The mongodb server might be down!");
+    }
     callback(result !== null);
   });
 }
@@ -83,6 +86,11 @@ function generateUserName(callback) {
 function changeUserName(originalUsername, newUsername, callback) {
   db.accounts.update({username: originalUsername.toLowerCase()},
                      {$set: {username: newUsername.toLowerCase()}}, callback);
+}
+
+function changePassword(username, newPassword, callback) {
+  db.accounts.update({username: username},
+      {$set: {password: passwordHash.generate(newPassword)}}, callback);
 }
 
 function login(username, unencryptedPassword, callback) {
@@ -220,6 +228,43 @@ pages.changeUserName = function (req, res, query) {
   });
 };
 
+pages.changePassword = function (req, res, query) {
+  if(!assertRequiredParameters(res, query, ['username', 'newPassword']))
+    return;
+  var username    = query.username;
+  var newPassword = query.newPassword;
+  var oldPassword = query.oldPassword;
+  var changePasswordCallback = function (err, result) {
+      if(err) {
+        console.err(err);
+        res.send({error: "Unknown error in changing password"});
+      } else {
+        generateAuthToken(username, function (token) {
+          res.send({auth_token: token});
+        });
+      }
+  };
+  if(oldPassword) {
+    getUsernameDetails(username, function (err, result) {
+      if(!result || !result.password || !passwordHash.verify(oldPassword, result.password)) {
+        res.send({error: "Invalid username or password"});
+      } else {
+        changePassword(username, newPassword, changePasswordCallback);
+      }
+    });
+  } else {
+    getUsernameDetails(username, function (err, result) {
+      if(err) {
+        res.send({error: "Unknown error when changing password"});
+      } else if(!result || result.password) {
+        res.send({error: "Invalid username or password"});
+      } else {
+        changePassword(username, newPassword, changePasswordCallback);
+      }
+    });
+  }
+};
+
 pages.login = function (req, res, query) {
   if(!assertRequiredParameters(res, query, ['username', 'password']))
     return;
@@ -301,5 +346,4 @@ pages.facebookLogin = function (req, res, query) {
 pages.sendRecoveryEmail = passwordReset.sendRecoveryEmail;
 pages.recoverPassword   = passwordReset.recoverPassword;
 pages.resetPassword     = passwordReset.resetPassword;
-
 
