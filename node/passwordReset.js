@@ -19,16 +19,18 @@ function getPasswordResetLink(email, callback) {
         return;
       }
       var expires = new Date().addHours(2);
-      var data = {email: email, token: new mongodb.Binary(buf), expires: expires};
+      var data = {email: email,
+                  token: new mongodb.Binary(buf),
+                expires: expires};
       if(result === null)
         db.accountRecovery.insert(data);
       else
         db.accountRecovery.update({email: email}, data);
       var encodedToken = encodeURIComponent(buf.toString('base64'));
       callback(url.format({protocol: 'https:',
-                         hostname: constants.hostname,
-                         pathname: '/accounts/recoverPassword',
-                         query: {email: email, auth: encodedToken}}));
+                           hostname: constants.hostname,
+                           pathname: '/accounts/recoverPassword',
+                              query: {email: email, auth: encodedToken}}));
     });
   });
 }
@@ -52,10 +54,10 @@ function resetPassword(email, token, unencryptedPassword, callback) {
     db.accounts.update({email: email}, {$set: {password: password}});
     //Send an email
     var message = {
-      from:    constants.noReplyEmail,
-      to:      email,
+         from: constants.noReplyEmail,
+           to: email,
       subject: "Your password has been reset",
-      text:    "This is an automatic message from Gorilla Warefare informing "+
+         text: "This is an automatic message from Gorilla Warefare informing "+
                "you that your password for " + constants.companyName +
                " has been reset."
     };
@@ -87,7 +89,7 @@ exports.sendRecoveryEmail = function (req, res, query) {
           to: email,
           subject: "Recover password for " + constants.gamename,
           html: mustache.to_html(template, {companyName: constants.gamename,
-                                            resetLink: link})
+                                              resetLink: link})
         };
         transport.sendMail(message, function (error) {
           if(error)
@@ -109,11 +111,11 @@ exports.recoverPassword = function (req, res, query) {
       res.send({error: "Invalid email recovery link"});
       return;
     }
-    fs.readFile('./passwordRecoveryForm.html', 'ascii', function (err, template) { 
+    fs.readFile('./passwordRecoveryForm.html', 'ascii', function (err, template) {
       if(err) throw err;
       res.send(mustache.to_html(template, {email: query.email,
                                             auth: query.auth,
-                                            company: constants.companyName}));
+                                         company: constants.companyName}));
     });
   });
 };
@@ -144,3 +146,4 @@ exports.resetPassword = function (req, res, query) {
     });
   });
 };
+

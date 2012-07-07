@@ -97,9 +97,9 @@ function login(username, unencryptedPassword, callback) {
   getUsernameDetails(username, function(err, result) {
     if(err || result === null) {
       callback(false);
-      return;
+    } else {
+      callback(passwordHash.verify(unencryptedPassword, result.password));
     }
-    callback(passwordHash.verify(unencryptedPassword, result.password));
   });
 }
 
