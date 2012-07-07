@@ -7,11 +7,6 @@ var crypto = require('crypto');
 var passwordReset = require('./passwordReset');
 var check = require('validator').check;
 
-Date.prototype.addHours = function(h){
-    this.setHours(this.getHours()+h);
-    return this;
-}
-
 function getUsernameDetails(username, callback) {
   db.accounts.findOne({username: username.toLowerCase()}, callback);
 }

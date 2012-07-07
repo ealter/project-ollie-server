@@ -10,6 +10,11 @@ var fs = require('fs');
 var mustache = require('mustache');
 var constants = require('./game-constants.js');
 
+Date.prototype.addHours = function(h){
+    this.setHours(this.getHours()+h);
+    return this;
+}
+
 function getPasswordResetLink(email, callback) {
   email = email.toLowerCase();
   crypto.randomBytes(8, function(ex, buf) {
