@@ -1,10 +1,24 @@
+<!DOCTYPE html>
 <html>
 <head>
   <title>Welcome to Gorilla Warfare!</title>
+  <link rel="stylesheet" type="text/css" href="static/css/homepage.css" />
 </head>
 
 <body>
-  <h1>Nothing really to see here yet, but try again soon :)</h1>
+  <h1 id="game_name">Gorilla Warfare</h1>
+  <p class="description">Gorilla Warfare is a turned based asynchronous iPhone
+  game. Battle your friends with teams made from different character classes.
+  This game was created by Hi Ku Studios, LLC by a team of (mostly) Tufts
+  students living in Hawaii for a summer.</p>
+  <div id="signup">
+    <form name="email_signup" action="marketing/signup" method="get">
+      <p>Sign up with your email address to receive updates<br />
+        <input type="text"   name="email" />
+        <input type="submit" value="sign up" />
+      </p>
+    </form>
+  </div>
 </body>
 </html>
 
