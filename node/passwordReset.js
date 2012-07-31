@@ -1,7 +1,8 @@
 var crypto = require('crypto');
 var mongodb = require('mongodb');
 var passwordHash = require('password-hash');
-var db = require('mongojs').connect('ollie', ['accounts', 'accountRecovery']);
+var gameConstants = require('./game-constants');
+var db = require('mongojs').connect(gameConstants.databaseName, ['accounts', 'accountRecovery']);
 var url = require('url');
 var nodemailer = require('nodemailer');
 nodemailer.sendmail = true;
