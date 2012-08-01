@@ -11,12 +11,23 @@ function getRandomPlayer(username, callback) {
     self.queue = [];
   }
   var queue = self.queue;
-  if(_.isUndefined(queue[0])) {
-    queue.push({username: username, callback: callback});
-  } else {
-    var opponent = queue.shift();
-    callback(opponent.username);
-    opponent.callback(username);
+  var opponent = null;
+  var queueIndex = 0;
+  while(!opponent) {
+    if(queueIndex >= queue.length) {
+      queue.push({username: username, callback: callback});
+      break;
+    } else {
+      var opponent = queue[queueIndex];
+      if(opponent === username) {
+        queueIndex++;
+        opponent = null;
+      } else {
+        queue.splice(queueIndex, 1);
+        callback(opponent.username);
+        opponent.callback(username);
+      }
+    }
   }
 }
 
