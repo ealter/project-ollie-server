@@ -1,9 +1,7 @@
 var _ = require('underscore');
 var accounts = require('./accounts');
 var assertRequiredParameters = accounts.assertRequiredParameters;
-var gameConstants = require('./game-constants');
-var db = require('mongojs').connect(gameConstants.databaseName,
-                                   ['accounts']);
+var db = require('./game-constants').connectToDatabase(['accounts']);
 
 //TODO: base this on rankings
 //TODO: We probably want to store this in a database
