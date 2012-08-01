@@ -22,7 +22,7 @@ function startGame(challenger, opponent, callback) {
 }
 
 function getCurrentGamesForUser(username, callback) {
-  db.games.find({challenger: username}, function (err, result) {
+  db.games.find({challenger: username, gameIsOver: false}, function (err, result) {
     if(err) {
       console.error(err);
       callback(null);
@@ -30,17 +30,14 @@ function getCurrentGamesForUser(username, callback) {
     }
     var iAmChallenging = true;
     var getClientFacingGamesData = function (dbGames) {
-      var currentGames = _.filter(dbGames, function (game) {
-        return !game.gameIsOver;
-      });
-      return _.map(currentGames, function (dbGameData) {
+      return _.map(dbGames, function (dbGameData) {
         return {gameId: dbGameData._id,
               opponent: iAmChallenging ? dbGameData.opponent : dbGameData.challenger,
             isYourTurn: dbGameData.turnIsChallenger === iAmChallenging};
       });
     };
     var challengingGames = getClientFacingGamesData(result);
-    db.games.find({opponent: username}, function (err, result) {
+    db.games.find({opponent: username, gameIsOver: false}, function (err, result) {
       if(err) {
         console.error(err);
         callback(challengingGames);
