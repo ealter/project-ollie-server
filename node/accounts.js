@@ -121,7 +121,7 @@ function assertRequiredParameters(res, query, requiredParameters) {
 }
 
 function generateAuthToken(username, callback) {
-  crypto.randomBytes(16, function(ex, buf) {
+  crypto.randomBytes(32, function(ex, buf) {
     if (ex) throw ex;
     var token = buf.toString('base64');
     var encryptedToken = passwordHash.generate(buf.toString('base64'));

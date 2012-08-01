@@ -17,7 +17,7 @@ Date.prototype.addHours = function(h){
 
 function getPasswordResetLink(email, callback) {
   email = email.toLowerCase();
-  crypto.randomBytes(8, function(ex, buf) {
+  crypto.randomBytes(16, function(ex, buf) {
     db.accountRecovery.findOne({email: email}, function (err, result) {
       if(err) {
         callback(null);
