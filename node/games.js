@@ -1,5 +1,6 @@
 var db = require('./game-constants').connectToDatabase(['accounts', 'accountsMeta', 'games']);
 var accounts = require('./accounts');
+var _ = require('underscore');
 
 var assertRequiredParameters = accounts.assertRequiredParameters;
 
@@ -20,6 +21,38 @@ function startGame(challenger, opponent, callback) {
                   });
 }
 
+function getCurrentGamesForUser(username, callback) {
+  db.games.find({challenger: username}, function (err, result) {
+    if(err) {
+      console.error(err);
+      callback(null);
+      return;
+    }
+    var iAmChallenging = true;
+    var getClientFacingGamesData = function (dbGames) {
+      var currentGames = _.filter(dbGames, function (game) {
+        return !game.gameIsOver;
+      });
+      return _.map(currentGames, function (dbGameData) {
+        return {gameId: dbGameData._id,
+              opponent: iAmChallenging ? dbGameData.opponent : dbGameData.challenger,
+            isYourTurn: dbGameData.turnIsChallenger === iAmChallenging};
+      });
+    };
+    var challengingGames = getClientFacingGamesData(result);
+    db.games.find({opponent: username}, function (err, result) {
+      if(err) {
+        console.error(err);
+        callback(challengingGames);
+        return;
+      }
+      iAmChallenging = false;
+      var opponentGames = getClientFacingGamesData(result);
+      callback(_.union(opponentGames, challengingGames));
+    });
+  });
+}
+
 var pages = {};
 exports.pages = pages;
 
@@ -28,6 +61,10 @@ pages.challengePlayer = function (req, res, query) {
     return;
   var username = query.username;
   var opponentUsername = query.opponentUsername;
+  if(username === opponentUsername) {
+    res.send({error: 'You cannot challenge yourself to a game.'});
+    return;
+  }
   accounts.isAuthTokenValid(username, query.auth_token, function (isValid) {
     if(!isValid) {
       res.send({error: "Invalid authorization token"});
@@ -46,6 +83,21 @@ pages.challengePlayer = function (req, res, query) {
         });
       }
     });
+  });
+};
+
+pages.currentGames = function (req, res, query) {
+  if(!assertRequiredParameters(res, query, ['username', 'auth_token']))
+    return;
+  var username = query.username;
+  accounts.isAuthTokenValid(username, query.auth_token, function (isValid) {
+    if(!isValid) {
+      res.send({error: "Invalid authorization token"});
+    } else {
+      getCurrentGamesForUser(username, function (games) {
+        res.send({games: games});
+      });
+    }
   });
 };
 
