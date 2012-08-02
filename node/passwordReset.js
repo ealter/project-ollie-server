@@ -24,7 +24,7 @@ function getPasswordResetLink(email, callback) {
         callback(null);
         return;
       }
-      var expires = new Date().addHours(2);
+      var expires = new Date().addHours(6);
       var data = {email: email,
                   token: new mongodb.Binary(buf),
                 expires: expires};
