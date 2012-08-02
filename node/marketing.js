@@ -1,8 +1,7 @@
 var gameConstants = require('./game-constants');
 var db = require('mongojs').connect(gameConstants.databaseName,
                                    ['emailList']);
-var accounts = require('./accounts');
-var assertRequiredParameters = accounts.assertRequiredParameters;
+var assertRequiredParameters = require('./utility-fns').assertRequiredParameters;
 
 function doesEmailExist(email, callback) {
   db.emailList.findOne({email: email.toLowerCase()}, function (err, result) {

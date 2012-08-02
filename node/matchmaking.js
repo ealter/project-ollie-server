@@ -1,6 +1,6 @@
 var _ = require('underscore');
 var accounts = require('./accounts');
-var assertRequiredParameters = accounts.assertRequiredParameters;
+var assertRequiredParameters = require('./utility-fns').assertRequiredParameters;
 var db = require('./game-constants').connectToDatabase(['accounts']);
 
 //TODO: base this on rankings

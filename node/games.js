@@ -1,8 +1,7 @@
 var db = require('./game-constants').connectToDatabase(['accounts', 'accountsMeta', 'games']);
 var accounts = require('./accounts');
 var _ = require('underscore');
-
-var assertRequiredParameters = accounts.assertRequiredParameters;
+var assertRequiredParameters = require('./utility-fns').assertRequiredParameters;
 
 //Assumes that the challanger and opponent exist.
 function startGame(challenger, opponent, callback) {

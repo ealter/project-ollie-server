@@ -9,6 +9,7 @@ var transport = nodemailer.createTransport("Sendmail", "/usr/sbin/sendmail");
 var fs = require('fs');
 var mustache = require('mustache');
 var constants = require('./game-constants.js');
+var assertRequiredParameters = require('./utility-fns').assertRequiredParameters;
 
 Date.prototype.addHours = function(h){
     this.setHours(this.getHours()+h);

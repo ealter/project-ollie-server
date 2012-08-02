@@ -4,6 +4,7 @@ var passwordHash = require('password-hash');
 var crypto = require('crypto');
 var passwordReset = require('./passwordReset');
 var check = require('validator').check;
+var assertRequiredParameters = require('./utility-fns').assertRequiredParameters;
 
 function getUsernameDetails(username, callback) {
   db.accounts.findOne({username: username.toLowerCase()}, callback);
@@ -109,17 +110,6 @@ function logout(username, auth_token, callback) {
   });
 }
 
-function assertRequiredParameters(res, query, requiredParameters) {
-  for (var i=0; i < requiredParameters.length; i++) {
-    var propName = requiredParameters[i];
-    if(!query.hasOwnProperty(propName) || query[propName] === "") {
-      res.send({error: 'Missing parameter ' + propName});
-      return false;
-    }
-  }
-  return true;
-}
-
 function generateAuthToken(username, callback) {
   crypto.randomBytes(32, function(ex, buf) {
     if (ex) throw ex;
@@ -173,7 +163,6 @@ exports.pages = pages;
 exports.isAuthTokenValid = isAuthTokenValid;
 exports.generateUserName = generateUserName;
 exports.doesUserExist    = doesUserExist;
-exports.assertRequiredParameters = assertRequiredParameters;
 
 pages.newAccount = function (req, res, query) {
   if(!assertRequiredParameters(res, query, ['username', 'password', 'email']))
