@@ -44,7 +44,7 @@ function getPasswordResetLink(email, callback) {
 
 function isPasswordResetTokenValid(email, token, callback) {
   email = email.toLowerCase();
-  var tokenBinary = new mongodb.Binary(new Buffer(token, 'base64'));
+  var tokenBinary = new mongodb.Binary(new Buffer(decodeURIComponent(token), 'base64'));
   db.accountRecovery.findOne({email: email.toLowerCase(), token: tokenBinary}, function (err, result) {
     callback(result !== null && result.expires >= new Date());
   });
@@ -147,7 +147,8 @@ exports.resetPassword = function (req, res, query) {
               " characters long.");
     return;
   }
-  resetPassword(query.email, query.auth, query.password, function (isValid) {
+  var auth = decodeURIComponent(query.auth);
+  resetPassword(query.email, auth, query.password, function (isValid) {
     if(!isValid) {
       formError("The password reset link is not valid.");
       return;
