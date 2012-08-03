@@ -142,7 +142,7 @@ exports.resetPassword = function (req, res, query) {
     formError("The passwords do not match.");
     return;
   }
-  if(strlen(password) < constants.minPasswordLength) {
+  if(password.length < constants.minPasswordLength) {
     formError("The password must be at least " + constants.minPasswordLength +
               " characters long.");
     return;
