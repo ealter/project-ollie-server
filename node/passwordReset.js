@@ -2,6 +2,7 @@ var crypto = require('crypto');
 var mongodb = require('mongodb');
 var passwordHash = require('password-hash');
 var db = require('./game-constants').connectToDatabase(['accounts', 'accountRecovery']);
+var accounts = require('./accounts');
 var url = require('url');
 var nodemailer = require('nodemailer');
 nodemailer.sendmail = true;
@@ -76,11 +77,13 @@ function resetPassword(email, token, unencryptedPassword, callback) {
 }
 
 exports.sendRecoveryEmail = function (req, res, query) {
-  assertRequiredParameters(query, ['email']);
+  if(!assertRequiredParameters(res, query, ['email']))
+    return;
   var email = query.email.toLowerCase();
-  doesEmailExist(email, function (emailExists) {
+  accounts.doesEmailExist(email, function (emailExists) {
     if(!emailExists) {
       console.log("email " + email + " does not exist");
+      res.send({error: "The email does not exist"}); //TODO: give success msg
       return;
     }
     getPasswordResetLink(email, function (link) {
@@ -111,7 +114,8 @@ exports.sendRecoveryEmail = function (req, res, query) {
 };
 
 exports.recoverPassword = function (req, res, query) {
-  assertRequiredParameters(query, ['email', 'auth']);
+  if(!assertRequiredParameters(res, query, ['email', 'auth']))
+    return;
   isPasswordResetTokenValid(query.email, query.auth, function (valid) {
     if(!valid) {
       res.send({error: "Invalid email recovery link"});
@@ -127,7 +131,8 @@ exports.recoverPassword = function (req, res, query) {
 };
 
 exports.resetPassword = function (req, res, query) {
-  assertRequiredParameters(query, ['email', 'auth', 'password', 'password_repeat']);
+  if(!assertRequiredParameters(res, query, ['email', 'auth', 'password', 'password_repeat']))
+    return;
   var formError = function(message) {
     res.send(message);
   };
