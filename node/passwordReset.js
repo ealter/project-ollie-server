@@ -34,7 +34,7 @@ function getPasswordResetLink(email, callback) {
       else
         db.accountRecovery.update({email: email}, data);
       var encodedToken = encodeURIComponent(buf.toString('base64'));
-      callback(url.format({protocol: 'https:',
+      callback(url.format({protocol: 'http:',
                            hostname: constants.hostname,
                            pathname: '/accounts/recoverPassword',
                               query: {email: email, auth: encodedToken}}));
