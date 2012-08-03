@@ -153,7 +153,7 @@ exports.resetPassword = function (req, res, query) {
       formError("The password reset link is not valid.");
       return;
     }
-    fs.readFile('./passwordResetSuccess.html', function (err, html) {
+    fs.readFile('./passwordResetSuccess.html', 'utf8', function (err, html) {
       if(err) throw err;
       res.send(html);
     });
