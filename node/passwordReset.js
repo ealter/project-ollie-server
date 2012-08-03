@@ -44,7 +44,8 @@ function getPasswordResetLink(email, callback) {
 
 function isPasswordResetTokenValid(email, token, callback) {
   email = email.toLowerCase();
-  db.accountRecovery.findOne({email: email, token: token}, function (err, result) {
+  var tokenBinary = new mongodb.Binary(new Buffer(token, 'base64'));
+  db.accountRecovery.findOne({email: email.toLowerCase(), token: tokenBinary}, function (err, result) {
     callback(result !== null && result.expires >= new Date());
   });
 }
