@@ -1,3 +1,5 @@
+var _ = require('underscore');
+
 exports.assertRequiredParameters = function(res, query, requiredParameters) {
   for (var i=0; i < requiredParameters.length; i++) {
     var propName = requiredParameters[i];
@@ -7,5 +9,9 @@ exports.assertRequiredParameters = function(res, query, requiredParameters) {
     }
   }
   return true;
+}
+
+exports.decodeQuery = function(query) {
+  return _.map(query, decodeURIComponent);
 }
 
