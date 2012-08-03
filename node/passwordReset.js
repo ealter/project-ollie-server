@@ -64,7 +64,7 @@ function resetPassword(email, token, unencryptedPassword, callback) {
          from: constants.noReplyEmail,
            to: email,
       subject: "Your password has been reset",
-         text: "This is an automatic message from Gorilla Warefare informing "+
+         text: "This is an automatic message from " + constants.gamename + " informing "+
                "you that your password for " + constants.companyName +
                " has been reset."
     };
