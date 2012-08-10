@@ -160,10 +160,11 @@ function userIdForFacebookAccessToken(accessToken, callback)
 /* Exported functions */
 var pages = {};
 exports.pages = pages;
-exports.isAuthTokenValid = isAuthTokenValid;
-exports.generateUserName = generateUserName;
-exports.doesUserExist    = doesUserExist;
-exports.doesEmailExist   = doesEmailExist;
+exports.isAuthTokenValid   = isAuthTokenValid;
+exports.generateUserName   = generateUserName;
+exports.doesUserExist      = doesUserExist;
+exports.doesEmailExist     = doesEmailExist;
+exports.getUsernameDetails = getUsernameDetails;
 
 pages.newAccount = function (req, res, query) {
   if(!assertRequiredParameters(res, query, ['username', 'password', 'email']))
