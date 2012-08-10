@@ -53,7 +53,7 @@ var pages = {};
 exports.pages = pages;
 
 pages.challengePlayer = function (req, res, query) {
-  if(!assertRequiredParameters(res, query, ['username', 'auth_token', 'opponentUsername']))
+  if(!assertRequiredParameters(res, query, ['opponentUsername']))
     return;
   var username = query.username;
   var opponentUsername = query.opponentUsername;
@@ -61,35 +61,29 @@ pages.challengePlayer = function (req, res, query) {
     res.send({error: 'You cannot challenge yourself to a game.'});
     return;
   }
-  accounts.isAuthTokenValid(username, query.auth_token, function (isValid) {
-    if(!isValid) {
-      res.send({error: "Invalid authorization token"});
-      return;
+  accounts.validateCredentials(res, query, function (isValid) {
+    if(isValid) {
+      accounts.doesUserExist(opponentUsername, function (opponentExists) {
+        if(!opponentExists) {
+          res.send({error: "The opponent username is invalid"});
+        } else {
+          startGame(username, opponentUsername, function (gameId) {
+            if(gameId) {
+              res.send({gameId: gameId});
+            } else {
+              res.send({error: "Unknown error when starting the game"});
+            }
+          });
+        }
+      });
     }
-    accounts.doesUserExist(opponentUsername, function (opponentExists) {
-      if(!opponentExists) {
-        res.send({error: "The opponent username is invalid"});
-      } else {
-        startGame(username, opponentUsername, function (gameId) {
-          if(gameId) {
-            res.send({gameId: gameId});
-          } else {
-            res.send({error: "Unknown error when starting the game"});
-          }
-        });
-      }
-    });
   });
 };
 
 pages.currentGames = function (req, res, query) {
-  if(!assertRequiredParameters(res, query, ['username', 'auth_token']))
-    return;
   var username = query.username;
-  accounts.isAuthTokenValid(username, query.auth_token, function (isValid) {
-    if(!isValid) {
-      res.send({error: "Invalid authorization token"});
-    } else {
+  accounts.validateCredentials(res, query, function (isValid) {
+    if(isValid) {
       getCurrentGamesForUser(username, function (games) {
         res.send({games: games});
       });

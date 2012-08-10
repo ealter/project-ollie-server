@@ -49,13 +49,9 @@ pages.searchUsername = function (req, res, query) {
 };
 
 pages.findRandomPlayer = function (req, res, query) {
-  if(!assertRequiredParameters(res, query, ['username', 'auth_token']))
-    return;
   var username = query.username;
-  accounts.isAuthTokenValid(username, query.auth_token, function (isValid) {
-    if(!isValid) {
-      res.send({error: "Invalid authorization"});
-    } else {
+  accounts.validateCredentials(res, query, function (isValid) {
+    if(isValid) {
       getRandomPlayer(username, function (opponent) {
         res.send({username: username, opponent: opponent});
       });

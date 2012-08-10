@@ -97,17 +97,11 @@ function login(username, unencryptedPassword, callback) {
   });
 }
 
-function logout(username, auth_token, callback) {
-  isAuthTokenValid(username, auth_token, function (isValid) {
-    if(!isValid) {
-      callback(false);
-      return;
-    }
-    db.accounts.update({username: username.toLowerCase()},
-                       {$set: {auth_token: null, auth_tokenDate: null}});
-    //TODO: maybe call callback only if update succeeded?
-    callback(true);
-  });
+function logout(username, callback) {
+  db.accounts.update({username: username.toLowerCase()},
+                     {$set: {auth_token: null, auth_tokenDate: null}});
+  //TODO: maybe call callback only if update succeeded?
+  callback(true);
 }
 
 function generateAuthToken(username, callback) {
@@ -131,6 +125,25 @@ function isAuthTokenValid(username, auth_token, callback) {
     callback(passwordHash.verify(auth_token, result.auth_token));
   });
 }
+
+//Calls the callback with true on success. On failure, it sends an error
+//message and calls the callback with false.
+function validateCredentials(res, query, callback) {
+  if(!assertRequiredParameters(res, query, ['username', 'auth_token'])) {
+    callback(false);
+  } else {
+    isAuthTokenValid(query.username, query.auth_token, function (isValid) {
+      if(isValid) {
+        callback(true);
+      } else {
+        res.send({error: "Invalid authorization"});
+        callback(false);
+      }
+    });
+  }
+}
+
+
 
 /* On success, it calls the callback with the userId. On failure, it calls the
  * callback with null. */
@@ -160,11 +173,12 @@ function userIdForFacebookAccessToken(accessToken, callback)
 /* Exported functions */
 var pages = {};
 exports.pages = pages;
-exports.isAuthTokenValid   = isAuthTokenValid;
-exports.generateUserName   = generateUserName;
-exports.doesUserExist      = doesUserExist;
-exports.doesEmailExist     = doesEmailExist;
-exports.getUsernameDetails = getUsernameDetails;
+exports.isAuthTokenValid    = isAuthTokenValid;
+exports.validateCredentials = validateCredentials;
+exports.generateUserName    = generateUserName;
+exports.doesUserExist       = doesUserExist;
+exports.doesEmailExist      = doesEmailExist;
+exports.getUsernameDetails  = getUsernameDetails;
 
 pages.newAccount = function (req, res, query) {
   if(!assertRequiredParameters(res, query, ['username', 'password', 'email']))
@@ -181,20 +195,12 @@ pages.generateUserName = function (req, res) {
 };
 
 pages.changeUserName = function (req, res, query) {
-  if(!assertRequiredParameters(res, query, ['username', 'newUsername', 'auth_token']))
+  if(!assertRequiredParameters(res, query, ['newUsername']))
     return;
   var originalUsername = query.username;
   var newUsername      = query.newUsername;
-  isAuthTokenValid(originalUsername, query.auth_token, function (isValid) {
-    if(!isValid) {
-      res.send({error: "Invalid authorization token"});
-      return;
-    }
-    doesUserExist(originalUsername, function (originalExists) {
-      if(!originalExists) {
-        res.send({error: "Current username does not exist"});
-        return;
-      }
+  validateCredentials(res, query, function (isValid) {
+    if(isValid) {
       doesUserExist(newUsername, function (newUsernameExists) {
         if(newUsernameExists) {
           res.send({error: "New username already exists"});
@@ -208,7 +214,7 @@ pages.changeUserName = function (req, res, query) {
           });
         }
       });
-    });
+    };
   });
 };
 
@@ -265,13 +271,15 @@ pages.login = function (req, res, query) {
 };
 
 pages.logout = function (req, res, query) {
-  if(!assertRequiredParameters(res, query, ['username', 'auth_token']))
-    return;
-  logout(query.username, query.auth_token, function (success) {
-    if(success)
-      res.send({success: true});
-    else
-      res.send({error: "logout failed"});
+  validateCredentials(res, query, function (isValid) {
+    if(isValid) {
+      logout(query.username, function (success) {
+        if(success)
+          res.send({success: true});
+        else
+          res.send({error: "logout failed"});
+      });
+    }
   });
 };
 
