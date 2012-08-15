@@ -60,6 +60,7 @@ function validateStoreReceipt(username, receiptData, callback) {
           console.log("Invalid product id: " + data.receipt.product_id);
           numPurchased = 1000;
         }
+        numPurchased *= data.receipt.quantity;
         addTokensToUser(username, numPurchased, callback);
       }
     });
