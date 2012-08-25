@@ -13,7 +13,7 @@ exports.createRouter = function () {
       for(var page in pages) {
         if(pages.hasOwnProperty(page)) {
           this.post(page).bind(pages[page]);
-          this.get(page).bind(pages[page]);
+          //this.get(page).bind(pages[page]);
         }
       }
     });
